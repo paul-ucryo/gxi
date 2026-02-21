@@ -1,0 +1,542 @@
+<html>
+<head>
+<style>
+:root{
+    --p:50;
+    --m:calc(1 - var(--p));
+}
+select {
+    width: 15;
+}
+.tmout{
+    width: 40px;
+}
+.on {
+    background-color: red;
+}
+.off {
+    background-color: revert;
+}
+.timeout {
+    background-color: lightblue;
+}
+.interval {
+    background-color: salmon;
+}
+.press {
+    #background-color: lightgreen;
+}
+#mbus {
+    width: 100%;
+    visibility: hidden;
+}
+button {
+    width: 1in;
+    height: 1in;
+}
+textarea {
+    width: 4in;
+    height: 1in;
+}
+.phase {
+    font-size:10px;
+}
+.A {
+    font-size:10px;
+}
+.src {
+    font-size:20px;
+    background:blue;
+    background: linear-gradient(to bottom,blue  var(--p),white var(--p));
+}
+.snk {
+    font-size: 20px;
+    background: linear-gradient(to top,blue calc(100% - var(--p)),white calc(100% - var(--p)));
+}
+.target {
+    background: white;
+    font-size:20px;
+}
+.active {
+    background: white;
+    font-size:20px;
+}
+.probe {
+    background: white;
+    font-size:20px;
+}
+.cfg {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+}
+.cfg > .panel {
+    width: 0%;
+    height: 0%;
+    background: white;
+}
+</style>
+</head>
+<body>
+<button>update firmware</button>
+<button>config</button>
+<div class="cfg">
+<!--<div class="panel">-->
+<ul class="panel">
+    <li><input value="name"></input></li>
+    <li><input value="ip"></input></li>
+</ul>
+</div></div>
+<div>
+<div class='A'>
+    <div class="ref"><a class='active'>0</a><a>1</a><a>2</a><a>3</a><a>4</a><a>5</a><a>6</a><a>7</a><a>8</a></div> <br />
+    <button id='AL' class='L'><</button><button id="AR" class='R'>></button><br />
+    <div class='sig'><a>0</a><a>1</a><a>2</a><a>3</a><a>4</a><a>5</a><a>6</a><a>7</a><a>8</a></div>
+</div>
+<div>
+<div>
+    <ul>
+        <li>T1: 295/60 H1:1 Watt:PID</li>
+        <li>T2: 295</li>
+        <li>T3: 295/160 @H2:PID</li>
+        <li>T4: 295 @fn1:fn2,@fn3:fn4</li>
+        <li>H1: 1W</li>
+        <li>H2: off</li>
+        <li>H3: 60% High</li>
+        <li>H4: off</li>
+    </ul>
+</div>
+
+
+<button id="filter" class="timeout" onmousedown="fn1(this,'fw')">Filter</button>
+<button id="aperture" class="timeout" onmousedown="fn1(this,'aw')">Aperture</button>
+<button id="carousel" class="timeout" onmousedown="fn1(this,'cw')">Carousel</button>
+<button id="dock" class="timeout" onmousedown="fn1(this,'dock')">Dock</button>
+<button id="clear" class="timeout" onmousedown="fn1(this,'clear')">Clear</button>
+<button id="st" class="timeout" onmousedown="reset_server(this)">Reset</button>
+<!-- <br>
+<textarea id="timeout" class="timeout"></textarea>
+<input id="timeout2" value=2 class="tmout"></input>Timeout
+<br>
+<textarea id="interval" class="interval"></textarea>
+<input id="interval2" value=2 class="tmout"></input>Interveral
+-->
+<br>
+<textarea id="press" class="press">ts1</textarea>
+<button onmousedown="snd()">send</button>
+<br>
+<!--
+<button id="b_mbus" onmousedown="fn2()">MBUS</button>
+<br>
+-->
+<table id="axese">
+    <tr><th>Axis</th><th>Cell</th><th>FLS</th><th>RLS</th><th>HM</th><th>MOV</th><th>POS</th><th>SP</th><th>PWR</th></tr>
+    <tr><td>A: Filter</td><td id="A.c" class="off">-</td><td id="A.2" class="off">-</td><td id="A.3" class="off">-</td><td id='A.7'>-</td><td id="A.1" class="off">-</td><td id="A.p">-</td><td id="A.s">-</td><td id="A.5">-</td></tr>
+    <tr><td>B: Aperture</td><td id="B.c" class="off">-</td><td id="B.2" class="off">-</td><td id="B.3" class="off">-</td><td id='B.7'>-</td><td id="B.1" class="off">-</td><td id="B.p">-</td><td id="B.s">-</td><td id="B.5">-</td></tr>
+    <tr><td>C: Dock</td><td id="C.c" class="off">-</td><td id="C.2" class="off">-</td><td id="C.3" class="off">-</td><td id='C.7'>-</td><td id="C.1" class="off">-</td><td id="C.p">-</td><td id="C.s">-</td><td id="C.5">-</td></tr>
+    <tr><td>D: Carousel</td><td id="D.c" class="off">-</td><td id="D.2" class="off">-</td><td id="D.3" class="off">-</td><td id='D.7'>-</td><td id="D.1" class="off">-</td><td id="D.p">-</td><td id="D.s">-</td><td id="D.5">-</td></tr>
+</div>
+<br>
+<div id="mbus"></div>
+<script>
+
+let now = 0
+let count = 0
+let f0 = function (now){
+    if (count<10){
+        console.log(now)
+        count++
+        requestAnimationFrame(f0)
+    }
+    else {
+        let x = document.getElementById('x');
+        x.style.backgroundr='green';
+    }
+}
+//requestAnimationFrame(f0)
+/*
+let cmd = {
+    'filter': "fw",
+    'aperture': "aw",
+    'carousel': "cw",
+    'dock': "dock",
+    'init': "init",
+    'dataRc': "Data Record",
+}
+function fn0(sel,el) {
+    el = document.getElementById(el);
+    el.className = sel.value
+    console.log(el.className)
+}
+function fn1(el,val){
+    ws.send(val)
+    //let x = document.getElementById(el.className)
+    //x.value = cmd[el.id];
+    //let y = document.getElementById("mbus");
+    //let p = document.createElement("p")
+    //p.style.backgroundColor = 'green';
+    //p.textContent="ok";
+    //y.appendChild(p);
+    //console.log('me');
+}
+function snd(){
+    let x = document.getElementById('press')
+    ws.send(x.value);
+}
+function fn2(el){
+    let x = document.getElementById("mbus")
+    x.style.visibility =
+        {"":"visible","visible":"hidden","hidden":"visible"}[x.style.visibility];
+}
+function reset_server(){
+    ws_reset.send('restart')
+}
+
+const ws = new WebSocket("ws://127.0.0.1:1234");
+const ws_reset = new WebSocket("ws://127.0.0.1:1236");
+
+function openReset(){
+    ws_reset = new WebSocket("ws://127.0.0.1:1236");
+}
+
+ws.onopen = function() {
+    ws.send("hey!")
+};
+
+ws.onmessage = function(ev){
+    let dat = JSON.parse(ev.data);
+    for (let i in dat){
+        if (['1','2','3','5','7','p','s'].includes(i[2])){
+            document.getElementById(i).textContent=dat[i];
+        }
+        else if (i[2] == 'c'){
+            let el = document.getElementById(i)
+            if (i[0] != 'C') {el.textContent=[dat[i]];}
+        }
+    }
+}
+ws.onclose = function(){
+}
+
+ws_reset.onopen = function() {};
+ws_reset.onclose = function(){
+    openReset();
+}
+.phase a:nth-child(2) {
+    font-size:20px;
+    background:blue;
+    background: linear-gradient(to bottom,blue  var(--p),white var(--p));
+}
+
+.phase a:nth-child(4) {
+    font-size: 20px;
+    background: linear-gradient(to top,blue calc(100% - var(--p)),white calc(100% - var(--p)));
+}
+*/
+</script>
+<script>
+let fn2 = function (){
+    document.getElementById('x').className='src';
+    document.getElementById('y').className='snk';
+}
+let c = 0;
+let t = performance.now();
+let fn = function (){
+    document.documentElement.style.setProperty('--p',`${c*1}%`);
+    c++
+}
+let fn3 = function (){
+    document.getElementById('x').className='phase';
+    document.getElementById('y').className='target';
+}
+let h={
+    'reference':'',
+    'offset':'a',
+    'phase':'a',
+    'modulus':'a',
+    'diff':'a',
+};
+function cancel(){
+    env.A.cancel=true;
+}
+function to(){
+    console.log('hey');
+}
+function ta(){
+    console.log('closing');
+}
+let p0 = function (wrap,dt) {
+    return function (){ wrap(dt)}
+}
+
+let foo = function(dt){
+    let me = document.documentElement.style.getPropertyValue('--p');
+    if (me) {
+        me = Number(me.slice(0,-1))+dt;
+        //console.log(me);
+        if (!(me<100)){ me = 0; }
+    }
+    else { me = 0; }
+    document.documentElement.style.setProperty('--p',`${me}%`);
+    console.log(me);
+}
+function w(fn,arg){
+    return function (){ fn(arg) }
+}
+function assert(e){
+    let id = e.target.id;
+    let j = Number(env[id[0]].cell[2]);
+    let k = Number(env[id[0]].cell[1]);
+    let l = (j+{'L':-1,'R':1}[id[1]]);
+    env[id[0]].cell[1] = (k+l)%8;
+    //let ls = document.getElementsByClassName('phase')[0].children;
+    let ls = document.getElementsByClassName('A')[0].children;
+    //ls[k].className='me';
+    console.log(ls[k].className);
+    console.log(j);
+    ls[k+j].className='target';
+    console.log(ls[k]);
+    console.log(ls[k+j]);
+    clearTimeout(env.A.tm.A);
+    env.A.tm.A = setTimeout(w(updt,e),1000);
+}
+
+function stat(cell){}
+function aLock(id,lock){
+    document.getElementById(`${id}L`).disabled=lock;
+    document.getElementById(`${id}R`).disabled=lock;
+}
+function updt(e){
+    let id = e.target.id
+    aLock(id[0],true);
+    console.log(env[id[0]].cell[1]);
+    let old = env[id[0]].cell[1];
+    env[id[0]].cell[1] = (old+env[id[0]].cell[2])%8;
+    env[id[0]].cell[2] = 0;
+    let ls = document.getElementsByClassName('phase')[0].children;
+    
+    ls[env['A'].cell[0]].id='x';
+    let targ = env[id[0]].cell[1];
+    //env[id[0]].cell[1] = 0;
+    ls[targ].id='y';
+    //ls[old].className='phase';
+    //ls[targ].className='target';
+    console.log(ls[targ]);
+    document.addEventListener('click',to);
+    for (let i=0;i<100;i++){
+    }
+    aLock(id[0],false);
+    //nextElementSibing
+    //previousElmentSibling
+    //firstElementChild
+    //lastElementChild
+    //childElementCount
+    //env[id[0]].cell[1]=Number(env[id[0]].cell[2])+{'L':-1,'R':1}[id[1]];
+}
+function tLock(){
+}
+
+function update(e){
+    let id = e.target.id;
+    for (let i in env[id[0]].tm){
+        clearTimeout(env[id[0]].tm[i]);
+    }
+    env[id[0]].cell[1]=Number(env[id[0]].cell[2])+{'L':-1,'R':1}[id[1]];
+    env[id[0]].tm.push(setTimeout(lockAxis,2000));
+    //console.log(diff.cell[id[0]][1]);
+}
+function cmd(cell){}
+
+let env = {
+    'A':{
+        'cell':[0,0,0],
+        'tm':{},
+        'cancel':false,
+    },
+}
+
+function phase(fn,start,end,close,dt,dt0,nv){
+    let i = start;
+    let mx = function(){ 
+        if (nv.cancel) { console.log('stop');return 'stop' }
+        if (i<end) {
+            i++;
+            fn();
+            nv.tm.B=(setTimeout(mx,dt));
+        }
+        else{nv.tm.B=(setTimeout(close,dt0));}
+    }
+    return mx
+    return 'done'
+}
+//me();
+console.log(env.A);
+console.log(document.getElementById('AR').onmousedown)
+console.log(env.A);
+let tm0 = phase(p0(foo,10),1,10,ta,100,1000,env.A)
+//let tm1 = phase(inc,1,10,ta,100,1000,env.A)
+//tm1()
+//let tmp = phase(to,1,10,ta,1000,1000,env.A)
+
+/*
+motorupdate phases
+*/
+function l0(){
+    let ls = document.getElementsByClassName('A')[0].children;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+let me2 = function (){
+    let ls = document.getElementsByClassName('phase')[0].children;
+    ls[0].id='x';
+    let nxt = 0;
+    for (let i in ls){
+        if (ls[i].id == 'y'){
+            console.log(ls[i].id);
+            nxt = i;
+        }
+    }
+    nxt = nxt%8+diff.cell['A'][1];
+    diff.cell['A'][1] = 0;
+    ls[nxt].id='y';
+    fn()
+    fn2()
+    document.addEventListener('click',fn4);
+    for (let i=0;i<100;i++){
+        env.A.tm.push(setTimeout(fn,i*20))
+    }
+    env.A.tm.A.push(setTimeout(fn3,100*20+1000))
+}
+function lockAxis (){
+    //document.getElementById('AL').disabled=true;
+    //document.getElementById('AR').disabled=true;
+    aLock('A',true);
+    let ls = document.getElementsByClassName('phase')[0].children;
+    
+    ls[env['A'].cell[0]].id='x';
+    let nxt = env['A'].cell[1]%8+env['A'].cell[1];
+    env['A'].cell[1] = 0;
+    ls[nxt].id='y';
+    console.log(ls[nxt]);
+    fn()
+    fn2()
+    document.addEventListener('click',to);
+    for (let i=0;i<100;i++){
+        env.A.tm.push(setTimeout(fn,i*20))
+    }
+    env.A.tm.push(setTimeout(fn3,100*20+1000))
+}
+function update(e){
+    let id = e.target.id;
+    for (let i in env[id[0]].tm){
+        clearTimeout(env[id[0]].tm[i]);
+    }
+    env[id[0]].cell[1]=Number(env[id[0]].cell[2])+{'L':-1,'R':1}[id[1]];
+    env[id[0]].tm.push(setTimeout(lockAxis,2000));
+    //console.log(diff.cell[id[0]][1]);
+}
+let fn10 = function (e){
+    let id = e.target.id 
+    diff.cell[id[0]][1]=Number(diff.cell[id[0]][1])+{'L':-1,'R':1}[id[1]];
+    me()
+}
+/*
+let diff ={
+    'cell':{A:[0,0,0],B:[0,0,0],C:[0,0,0]},
+}
+*/
+let ch_ref = function(e){
+    let l5 = document.getElementsByClassName('A')[0];
+    let l6 = l5.getElementsByClassName('ref')[0];
+    let l7 = l6.getElementsByClassName('active')[0];
+    l7.className = '';
+    let fn = {'<':l7.previousElementSibling,'>':l7.nextElementSibling}[e.target.textContent];
+    if (fn){ fn.className = 'active' }
+    else { 
+        let l8 = {'<':l6.lastElementChild,
+        '>':l6.firstElementChild }[e.target.textContent];
+        l8.className = 'active';
+        console.log(l8);
+    }
+    console.log(l7)
+}
+
+//phase(l2,1,10,ta,1000,1000,env.A)();
+document.getElementById('AL').onmousedown = l2;
+document.getElementById('AR').onmousedown = l2;
+//console.log(document.getElementById('AR').onmousedown = update);
+//tmp()
+tm0()
+
+let l1 = document.getElementsByClassName('A')[0];
+l1.ref = 0;
+console.log(l1.children[l1.ref].className);
+
+const dmc = `
+galil
+#dog
+WT 1
+IF (a=b)
+MG"ok"
+ENDIF
+#assert
+
+#enum
+
+#ENUM
+
+#ref
+'no, default differential, 2's complement is relative to home.
+fw=-1
+aw=-1
+cw=-1
+dock=-1
+ip,serial
+cell
+    FE;BG;
+    DP;
+latch
+#field
+if (fw=FW)
+ENDIF
+axis
+a=_A
+FE;BG;AM;
+if (fw=FW)
+JP #CENTER
+ENDIF
+#CENTER
+PR;BG
+#HM0
+DPA=0;
+#learn
+CN ,1;FE;BG
+AM;b=_PAA;JP CHCN;
+FE;BG
+AM;c=_PAA;JP CHCN;
+`
+
+
+
+
+
+
+
+
+</script>
+</body>
+</html>

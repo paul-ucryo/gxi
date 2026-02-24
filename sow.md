@@ -215,6 +215,7 @@ System acceptance requires:
 * The linear stage and carousel motors each have a 10-1 gear box.
 * The home switch is wired to each rotary axis indicating active cell
 * The linear stage has fwd and rvs limits (axis C)
+* Would probably also make polarity user/admin configurable. But only if it does not add additional time. changing hardcoded values can be 'admin'..
 
 ---
 

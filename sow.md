@@ -207,9 +207,18 @@ System acceptance requires:
 
 ---
 
-## 12. Updatable Extension Model
+## 12. Hardware
+
+* The controller is the DMC40x3. 
+* 3 NEMA 17 Bipolar stepper motors (200 steps,no encoder) 
+* 1 NEMA 23 Bipolar stepper motor (carousel motor axis D)
+* The linear stage and carousel motors each have a 10-1 gear box.
+* The home switch is wired to each rotary axis indicating active cell
+* The linear stage has fwd and rvs limits (axis C)
+
+---
+
+## 13. Updatable Extension Model
 
 This SOW shall serve as a living state model template.
-
-
 

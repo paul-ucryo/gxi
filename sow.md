@@ -7,28 +7,28 @@
 
 ## 1. Project Overview
 
-This project will deliver a state-driven motion control system and GUI for a mechanical assembly consisting of:
+This project will deliver a (state-driven?) motion control system and GUI for a mechanical assembly consisting of:
 (names can be changed)
 * Aperture Wheel (rotary)
 * Filter Wheel (rotary)
 * Carousel Wheel (rotary)
-* DOCS Linear Stage
+* Linear Stage
 
-The system shall be designed around **explicitly defined valid state configurations**. Motion shall only occur when the system is in a valid state and shall transition between states in a controlled and verifiable manner.
+The system probably should be designed around **explicitly defined valid state configurations**. Motion shall only occur when the system is in a valid state and shall transition between states in a controlled and verifiable manner.
 
-The Carousel Wheel and DOCS Linear Stage have interdependent motion constraints and must not move simultaneously unless explicitly allowed by defined state rules.
+The Carousel Wheel and Linear Stage have interdependent motion constraints and must not move simultaneously unless explicitly allowed by defined state rules.
 
 ---
 
 ## 2. Design Philosophy
 
-This system migh want to be implemented as a **finite state machine (FSM)**.
+This system might want to be implemented as a **finite state machine (FSM)**.
 
 Key principle:
 
 > Motion is not a command. Motion is a transition between valid states.
 
-No axis may enter a state that violates valid states. I would make valid states an admin facing table (json or somehting) as long as it doesn't add time to delivery over hardcoding.
+No axis may enter a state that violates valid states. I would make valid states an admin facing table (json or somehting) as long as it doesn't add time to delivery over hardcoding. This can be an upgrade.
 
 
 ## 3. Axis State Definitions
@@ -95,7 +95,7 @@ The following rules must be enforced:
    * Carousel Wheel is in `AT_POSITION`
    * Carousel Wheel is not `MOVING_TO_POSITION`
 
-3. Simultaneous motion of Carousel and DOCS is prohibited unless explicitly defined in a future configuration.
+3. Simultaneous motion of Carousel and linear stage is prohibited unless explicitly defined in a future configuration.
 
 4. Any violation of these rules shall:
 
@@ -123,11 +123,11 @@ Transitions that do not conform to defined rules shall be rejected.
 
 ## 7. Motion Strategies
 
-Two motion modes are be possible and combination of the 2 is probably idea. Whatever is fastest at the moment:
+Two motion modes are possible and combination of the 2 is probably ideal. Whatever is fastest at the moment:
 
 ### 7.1 Switch-Search Mode
 
-* Move until active-cell switch transition.
+* Move until active-cell switch transition (FE).
 * Confirm stable switch.
 * Transition to `AT_POSITION`.
 

@@ -1,0 +1,219 @@
+<html>
+<head>
+<style>
+.win {
+    position: absolute;
+    top:100px;
+    width: 300px;
+    height: 200px;
+    border: 1px solid #ccc;
+}
+.title {
+
+}
+</style>
+</head>
+<body>
+<div class="win">
+    <div class="title">J0</div>
+    <table>
+        <tr><th>,J0</th><th>J1,J2</th><th>J3</th></tr>
+        <tr><td>A</td><td>1</td><td>NO</td></tr>
+        <tr><td>B</td><td>1</td><td>NO</td></tr>
+        <tr><td>C</td><td>1</td><td>NO</td></tr>
+        <tr><th>,J0</th><th>J1,J2</th><th>J4</th></tr>
+        <tr><td>A</td><td>1</td><td>NO</td></tr>
+        <tr><td>B</td><td>1</td><td>NO</td></tr>
+        <tr><td>C</td><td>1</td><td>NO</td></tr>
+        <tr><th>,J0</th><th>J5,J6</th><th>J4</th></tr>
+        <tr><td>A</td><td>1</td><td>NO</td></tr>
+        <tr><td>B</td><td>1</td><td>NO</td></tr>
+        <tr><td>C</td><td>1</td><td>NO</td></tr>
+        <tr><th>,J0</th><th>J5,J6</th><th>J4</th></tr>
+        <tr><td>A</td><td>1</td><td>NO</td></tr>
+        <tr><td>B</td><td>1</td><td>NO</td></tr>
+        <tr><td>C</td><td>1</td><td>NO</td></tr>
+        <tr><th>,J0</th><th>J5,J6</th><th>J4</th></tr>
+        <tr><td>A</td><td>1</td><td>NO</td></tr>
+        <tr><td>B</td><td>1</td><td>NO</td></tr>
+        <tr><td>C</td><td>1</td><td>NO</td></tr>
+    </table>
+</div>
+<svg id="main"></svg>
+</body>
+<script>
+let conn=`
+gxi/schema.S1.
+gxi/S2
+gxi/S3
+(J{i},{label},{pn},{type})
+0P,MCTRL External,18PN
+0S,MCTRL Internal,
+S1,WHL.S 
+P1,WHL.P 
+E2,HMD
+E3,FL
+E5,RL
+E6,HMA
+E7,HMB
+S4,LSWCH.S 
+P4,LSWCH.P 
+S11,HSK External,26PN
+P11,HSK Hermetic,
+P13,T1P,4pn,sip
+S13,T1S,4pn,DT670
+P14,T2P,4pn,sip
+S14,T2S,4pn,DT670
+P15,T3P,4pn,sip
+S15,T3S,4pn,DT670
+P16,T4P,4pn,sip
+S16,T4S,4pn,DT670
+S17,H1S,4pn,sip
+P17,H1P,4pn,25H
+S18,H2S,4pn,sip
+P18,H2P,4pn,25H
+S19,H3S,4pn,sip
+P19,H3P,4pn,25H
+S20,H4S,4pn,sip
+P20,H4P,4pn,25H
+S21,M1S,4pn,molex
+S22,M2S,4pn,molex
+S23,M3S,4pn,molex
+S24,M4S,4pn,molex
+P25,GALPWR,2.5mm,barrel
+P26,MKSPWR,2.5mm,barrel
+P27,DN1,
+P28,DN2,
+P29,DN3,
+P30,DN4,
+S31,GALSWCH,44pn,dsubs
+P31,GALSWCH,44pn,dsubp
+`
+let schema = `
+PWR:(label),(S25,P25),(Signal)
+CNTR,+24
+SHLD,GND
+
+GALIL:
+PWR:(label),(Pxxx,)
+CNTR,+24
+SHLD,GND
+
+(label),(,P0),(S1,P1),(E2)
+CW,D,1,NC
+CW,E,2,NO
+CW,C,6,COM
+(label),(,P0),(S1,P1),(E3)
+FL,R,7,NC
+FL,P,8,NO
+FL,B,3,COM
+(label),(,P0),(S1,P1),(E5)
+RL,U,4,NC
+RL,N,5,NO
+RL,A,9,COM
+(label),(,P0),(S4,P4),(E6)
+FW,,1,NC
+FW,H,2,NO
+FW,J,6,COM
+(label),(,P0),(S4,P4),(E7)
+AW,,4,NC
+AW,T,5,NO
+AW,K,9,COM
+
+(label),(,S0),(P31,S31),(Signal)
+,,((6,15/30),)
+CW,D,10,HMD,[,28AWG,12 IN]
+#CW,E,10,HMD oops. This should have been HMD
+CW,E,-
+CW,C,31,GND,[]
+FL,R,38,FLSC,[]
+FL,P,-
+FL,B,31,GND,[]
+RL,U,24,RLSC,[]
+RL,N,-
+RL,A,31,GND,[]
+FW,-
+FW,H,7,HMA,[]
+FW,J,31,GND,[]
+AW,-
+AW,T,8,HMB,[]
+AW,K,31,GND,[]
+
+MKS:(label),(Pxxx,Sxxx),
+8,+24
+5,-24
+14,RS-485-(A)
+13,RS-485+(B)
+Analog:(label),(Pxxx,Sxxx),(Sxxx,Pxxx)
+SIGGND,1,12
+AO1,2,2
+
+T1:(,P10),(P27,S27),signal
+J,4,+,[grn/wht,28 AWG,Cu,10ft]
+H,1,-,[red/wht]
+K,5,+,[blk,red]
+G,2,-,[red]
+T2:(,P11),(P28,S28)
+L,4,+,[blu/wht]
+Y,1,-,[org]
+M,5,+,[blu]
+Z,2,-,[blk]
+T3:(,P10),(P29,S29)
+F,4,+,[blu/blk]
+W,1,-,[grn]
+E,5,+,[grn/blk/wht]
+V,2,-,[org/blk]
+T4:(,P10),(S16,P16)
+N,4,+,[wht/red]
+a,1,-,[wht/blk]
+D,5,+,[red/blk/wht]
+U,2,-,[wht]
+H1:(,P11),(S17,P17)
+b,+,[red/blk]
+c,-,[blck/wht]
+H2(,P11),(S18,P18)
+T,+,[grn/blk]
+S,-,[red/gry]
+H3:(,P11),(S19,P19)
+P,+,[org/red]
+R,-,[blu/red]
+H4:(,P11),(S20,P20)
+B,+,[org/gry]
+C,-,[blk/red/wht]
+
+T1:(label),(,P11),(S13,P13)
+J,+,[CONST,.010"(32awg?),24IN]
+H,-
+K,+
+G,-
+T2:(label),(,P11),(S14,P14)
+L,+
+Y,-
+M,+
+Z,-
+T3:(label),(,P11),(S15,P15)
+F,+
+W,-
+E,+
+V,-
+T4:(label),(,P11),(S16,P16)
+N,+
+a,-
+D,+
+U,-
+H1:(label),(,P11),(S17,P17)
+b,+,[CU,26 AWG,20IN]
+c,-
+H2:(label),(,P11),(S18,P18)
+T,+
+S,-
+H3:(label),(,P11),(S19,P19)
+P,+
+R,-
+H4:(label),(,P11),(S20,P20)
+B,+
+C,-
+`
+
+</script>
+</html>
